@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robot Móvil - Simulación</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Overrides mínimos para layout (desktop 2 cols / móvil 1 col) y evitar overflow -->
+  <style>
+    .app-layout{
+      display:grid;
+      grid-template-columns: minmax(420px, 640px) 1fr;
+      gap:18px;
+      align-items:start;
+    }
+    .left-panel, .right-panel{ min-width:0; }
+
+    /* Canvas dentro del grid: NO usar vw aquí */
+    .right-panel .canvas-container{
+      width:100% !important;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .right-panel canvas{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+
+    /* Ocultar inputs legacy pero mantenerlos en DOM para canvas.js */
+    .hidden-inputs{ display:none !important; }
+
+    @media (max-width: 980px){
+      .app-layout{ grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <!-- Configuración de MathJax para ecuaciones en LaTeX -->
+  <script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      fontCache: 'global'
+    },
+    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+  };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+  <h1>LLM - Gemelo Digital- Robot Móvil</h1>
+
+  <div class="app-layout">
+    <!-- PANEL IZQUIERDO -->
+    <div class="left-panel">
+
+      <!-- Sección de cajas de contenido desplegables -->
+      <section class="info-boxes">
+
+        <!-- Panel MQTT + LLM -->
+        <div id="mqttPanel" class="mqtt-panel">
+          <!-- Broker oculto (se mantiene el id para compatibilidad con tu JS MQTT actual) -->
+          <input type="hidden" id="mqttUrl" value="ws://0.0.0.0:9001/mqtt">
+          <script>
+            const wsUrl = `ws://${location.hostname}:9001/mqtt`;
+            document.getElementById("mqttUrl").value = wsUrl;
+          </script>
+
+          <!-- Barra superior: estado + reconectar + tópico visible -->
+          <div class="mqtt-topbar">
+            <div class="mqtt-top-left">
+              <span id="mqttStatus" class="mqtt-status offline">Conectando…</span>
+              <button id="mqttConnectBtn" class="small-button" type="button">Reconectar</button>
+            </div>
+
+            <div class="mqtt-top-right">
+              <!-- <label for="mqttTopic" class="constant-label">Canal / Tópico (usuario):</label> -->
+              <input type="hidden" id="mqttTopic" value="huber/robot/goal">
+            </div>
+          </div>
+
+
+
+          <!-- LLM hero -->
+          <div class="llm-panel llm-hero">
+            <div class="llm-header">
+              <div class="llm-title">Instrucción al LLM</div>
+              <span id="llmStatus" class="mqtt-status offline">LLM: idle</span>
+            </div>
+
+            <textarea id="llmPrompt" rows="3"
+              placeholder="Ej: haz un círculo radio 200mm en 30s, centrado en (0,0)"></textarea>
+
+            <div class="llm-actions">
+                <!-- Botones rápidos -->
+              <button id="btnStop" class="quick-button llm" type="button">⏹ Detener</button>
+              <button id="btnCenter" class="quick-button llm" type="button">◎ Centro</button>
+              <button id="llmSendBtn" class="llm-send" type="button">Enviar</button>
+              <div class="llm-hint">Ctrl+Enter para enviar</div>
+            </div>
+
+            <!-- Tópico del comando al planificador (oculto al usuario) -->
+            <input type="hidden" id="mqttCmdTopic" value="huber/robot/plan/cmd" />
+
+            <!-- NUEVA pestaña: ver último JSON enviado al planificador -->
+            <details class="llm-help llm-debug">
+              <summary>Último JSON enviado al planificador</summary>
+              <pre id="lastCmdJson" class="json-preview">(sin datos aún)</pre>
+            </details>
+
+            <!-- Ayuda desplegable -->
+            <details class="llm-help">
+              <summary>Ayuda (ejemplos rápidos)</summary>
+
+              <div class="help-chips">
+                <!-- Básicos / navegación -->
+                <button class="chip" data-prompt="Ve al centro (0,0) suave en 5s.">Centro</button>
+                <button class="chip" data-prompt="Ve a la esquina superior derecha (500,300) en 8s.">Esquina sup-der</button>
+                <button class="chip" data-prompt="Muévete 150 a la derecha.">Derecha 150</button>
+                <button class="chip" data-prompt="Avanza 150 hacia adelante.">Adelante 150</button>
+
+                <!-- Trayectorias representativas -->
+                <button class="chip" data-prompt="Haz una línea recta desde donde estés hasta (300,150) en 10s.">Línea</button>
+                <button class="chip" data-prompt="Traza un círculo de radio 180 centrado en (0,0), 1 vuelta en 20s.">Círculo</button>
+                <button class="chip" data-prompt="Traza una elipse centrada en (0,0) con a=350 y b=200 en 24s.">Elipse</button>
+                <button class="chip" data-prompt="Traza una figura en 8 centrada en (0,0) con a=240 y b=140 en 24s.">Figura 8</button>
+                <button class="chip" data-prompt="Haz una senoide de x=-400 a x=400 con amplitud 120 en 20s.">Senoide</button>
+                <button class="chip" data-prompt="Haz un cuadrado centrado en (0,0) de lado 400, 1 vuelta en 20s.">Cuadrado</button>
+                <button class="chip" data-prompt="Haz una pista tipo racetrack centrada en (0,0), ancho 700, alto 240, 1 vuelta en 22s.">Racetrack</button>
+
+                <!-- Control / planeación -->
+                <button class="chip" data-prompt="Detente de inmediato.">STOP</button>
+              </div>
+            </details>
+
+            <!-- Controles -->
+            <details>
+              <summary>Controles de simulación</summary>
+              <div class="diagram-container">
+                <div class="controls">
+
+                  <!-- IMPORTANTE: estos inputs se conservan (ocultos) para no romper canvas.js -->
+                  <div class="variable-inputs hidden-inputs">
+                    <label for="startX">X Inicial (mm):</label>
+                    <input type="number" id="startX" value="0">
+                    <label for="startY">Y Inicial (mm):</label>
+                    <input type="number" id="startY" value="0">
+                    <label for="angle">Ángulo Inicial (°):</label>
+                    <input type="number" id="angle" value="0" step="1">
+
+                    <label for="endX">X Final deseada (mm):</label>
+                    <input type="number" id="endX" value="0">
+                    <label for="endY">Y Final deseada (mm):</label>
+                    <input type="number" id="endY" value="0">
+                  </div>
+
+                  <!-- Solo visibles -->
+                  <div class="constant-inputs">
+                    <label for="k" class="constant-label">Ganancia K:</label>
+                    <input type="number" id="k" value="0.5" step="0.01">
+
+                    <label for="l" class="constant-label">Distancia l (mm):</label>
+                    <input type="number" id="l" value="50" step="1">
+
+                    <label for="dt" class="constant-label">Tiempo dt (s):</label>
+                    <input type="number" id="dt" value="0.05" step="0.01">
+                  </div>
+
+                </div>
+              </div>
+            </details>
+
+          </div><!-- /.llm-panel -->
+        </div><!-- /#mqttPanel -->
+
+      </section>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="right-panel">
+      <div id="cycleCounter">Ciclos: 0 - Tiempo: 0.00 s</div>
+
+      <div class="canvas-container">
+        <canvas id="robotCanvas"></canvas>
+      </div>
+
+      <div class="download-buttons">
+        <button onclick="downloadCanvas()">Descargar Imagen de la Animación</button>
+      </div>
+
+      <div id="robotInfo"></div>
+
+      <!-- Botones generales (se quedan como estaban para compatibilidad) -->
+      <div class="controls">
+        <div class="button-controls">
+          <button id="animateBtn" class="control-button">
+            <span id="animateIcon">&#9658;</span> Iniciar
+          </button>
+          <button id="restartBtn" class="control-button">
+            <span id="restartIcon">&#8635;</span> Reiniciar
+          </button>
+          <button id="saveSessionBtn" class="control-button">
+            <span id="saveIcon">&#128190;</span> Guardar CSV sesión
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- GRÁFICAS ABAJO (full-width) -->
+  <div class="chart-section">
+    <h3>Error vs Tiempo</h3>
+    <div class="chart-container">
+      <canvas id="errorChart"></canvas>
+    </div>
+    <div class="download-buttons">
+      <button onclick="downloadChart(errorChart, 'errorChart')">Descargar Gráfica</button>
+      <button onclick="downloadCSVForChart('error')">Descargar CSV</button>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <h3>Posición vs Tiempo</h3>
+    <div class="chart-container">
+      <canvas id="positionChart"></canvas>
+    </div>
+    <div class="download-buttons">
+      <button onclick="downloadChart(positionChart, 'positionChart')">Descargar Gráfica</button>
+      <button onclick="downloadCSVForChart('position')">Descargar CSV</button>
+    </div>
+  </div>
+
+  <div class="chart-section">
+    <h3>Control vs Tiempo</h3>
+    <div class="chart-container">
+      <canvas id="controlChart"></canvas>
+    </div>
+    <div class="download-buttons">
+      <button onclick="downloadChart(controlChart, 'controlChart')">Descargar Gráfica</button>
+      <button onclick="downloadCSVForChart('control')">Descargar CSV</button>
+    </div>
+  </div>
+
+  <!-- Librerías -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+
+  <!-- Nuestros scripts -->
+  <script src="robot.js"></script>
+  <script src="charts.js"></script>
+  <script src="canvas.js"></script>
+  <script src="ui.js"></script>
+  <script src="llm_ui.js"></script>
+</body>
+</html>

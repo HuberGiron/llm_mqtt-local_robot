@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini MQTT Local (WS)</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 18px; max-width: 900px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 14px; }
+    input, button { padding: 10px; font-size: 14px; }
+    input { min-width: 240px; flex: 1; }
+    button { cursor: pointer; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-top: 12px; }
+    .ok { color: #0a7a0a; font-weight: 600; }
+    .bad { color: #b00020; font-weight: 600; }
+    pre { background: #0b0b0b; color: #eaeaea; padding: 12px; border-radius: 10px; overflow: auto; }
+    .small { font-size: 12px; opacity: 0.85; }
+  </style>
+</head>
+
+<body>
+  <h2>Mini App MQTT (WebSockets)</h2>
+  <div class="card">
+    <div class="row">
+      <label>Broker WS/WSS:</label>
+      <input id="brokerUrl" value="ws://127.0.0.1:9001" />
+      <button id="btnConnect">Conectar</button>
+      <button id="btnDisconnect" disabled>Desconectar</button>
+      <span id="status" class="bad">Desconectado</span>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <label>Tópico SUB:</label>
+      <input id="subTopic" value="huber/test/sub" />
+      <button id="btnSub" disabled>Suscribir</button>
+      <button id="btnUnsub" disabled>Desuscribir</button>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <label>Tópico PUB:</label>
+      <input id="pubTopic" value="huber/test/pub" />
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <label>Payload:</label>
+      <input id="payload" value='{"msg":"hola","t":0}' />
+      <button id="btnPublish" disabled>Publicar prueba</button>
+      <button id="btnClear">Limpiar log</button>
+    </div>
+
+    <div class="small" style="margin-top:10px">
+      Nota: MQTT en navegador requiere WebSockets. Si tu broker es local, normalmente usarás <b>ws://IP:9001</b>.
+      Si es HTTPS, usa <b>wss://</b>.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Último mensaje recibido</h3>
+    <div id="lastMsg" class="small">—</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Log</h3>
+    <pre id="log"></pre>
+  </div>
+
+  <!-- MQTT.js (browser) vía CDN -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <script>
+    // ========= Config simple =========
+    // Cambia estos defaults si quieres:
+    // - brokerUrl: ws://<tu-ip>:9001 o wss://<tu-dominio>:<puerto>
+    // - subTopic/pubTopic: tus tópicos
+    // =================================
+
+    let client = null;
+    let isSubbed = false;
+
+    const el = (id) => document.getElementById(id);
+    const logEl = el("log");
+    const statusEl = el("status");
+    const lastMsgEl = el("lastMsg");
+
+    function log(line) {
+      const ts = new Date().toISOString().slice(11, 19);
+      logEl.textContent += `[${ts}] ${line}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(line);
+    }
+
+    function setStatus(connected) {
+      statusEl.textContent = connected ? "Conectado" : "Desconectado";
+      statusEl.className = connected ? "ok" : "bad";
+      el("btnConnect").disabled = connected;
+      el("btnDisconnect").disabled = !connected;
+      el("btnPublish").disabled = !connected;
+      el("btnSub").disabled = !connected;
+      el("btnUnsub").disabled = !connected || !isSubbed;
+    }
+
+    function connect() {
+      const url = el("brokerUrl").value.trim();
+      if (!url) return alert("Pon un brokerUrl (ws://... o wss://...).");
+
+      // ClientId aleatorio para evitar colisiones
+      const clientId = "web_" + Math.random().toString(16).slice(2);
+
+      log(`Conectando a ${url} (clientId=${clientId}) ...`);
+
+      // Nota: en WSS con certificados self-signed el navegador suele bloquear.
+      client = mqtt.connect(url, {
+        clientId,
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 5000,
+        // username: "user", password: "pass", // si tu broker requiere auth
+      });
+
+      client.on("connect", () => {
+        log("✅ CONNECT");
+        setStatus(true);
+      });
+
+      client.on("reconnect", () => log("↻ RECONNECT"));
+      client.on("close", () => { log("⛔ CLOSE"); isSubbed = false; setStatus(false); });
+      client.on("offline", () => log("⚠ OFFLINE"));
+      client.on("error", (err) => log("❌ ERROR: " + (err?.message || err)));
+
+      client.on("message", (topic, payloadBuf) => {
+        const payload = payloadBuf.toString();
+        lastMsgEl.textContent = `topic="${topic}" payload=${payload}`;
+        log(`⬇ SUB topic="${topic}" payload=${payload}`);
+      });
+    }
+
+    function disconnect() {
+      if (!client) return;
+      log("Desconectando...");
+      try {
+        client.end(true); // force
+      } catch (e) {
+        log("ERROR al desconectar: " + e);
+      }
+      client = null;
+      isSubbed = false;
+      setStatus(false);
+    }
+
+    function subscribe() {
+      if (!client) return;
+      const topic = el("subTopic").value.trim();
+      if (!topic) return alert("Pon un tópico para suscribirte.");
+
+      client.subscribe(topic, { qos: 0 }, (err) => {
+        if (err) {
+          log("❌ SUB error: " + err.message);
+          return;
+        }
+        isSubbed = true;
+        log(`✅ SUB ok: ${topic}`);
+        el("btnUnsub").disabled = false;
+      });
+    }
+
+    function unsubscribe() {
+      if (!client) return;
+      const topic = el("subTopic").value.trim();
+      if (!topic) return;
+
+      client.unsubscribe(topic, (err) => {
+        if (err) {
+          log("❌ UNSUB error: " + err.message);
+          return;
+        }
+        isSubbed = false;
+        log(`✅ UNSUB ok: ${topic}`);
+        el("btnUnsub").disabled = true;
+      });
+    }
+
+    function publishTest() {
+      if (!client) return;
+      const topic = el("pubTopic").value.trim();
+      if (!topic) return alert("Pon un tópico para publicar.");
+      let payload = el("payload").value;
+
+      // Si payload es JSON válido, le agrego timestamp de ejemplo
+      try {
+        const obj = JSON.parse(payload);
+        obj.t = Date.now();
+        payload = JSON.stringify(obj);
+      } catch (_) {
+        // si no es JSON, se publica tal cual
+      }
+
+      client.publish(topic, payload, { qos: 0, retain: false }, (err) => {
+        if (err) {
+          log("❌ PUB error: " + err.message);
+          return;
+        }
+        log(`⬆ PUB topic="${topic}" payload=${payload}`);
+      });
+    }
+
+    // UI events
+    el("btnConnect").addEventListener("click", connect);
+    el("btnDisconnect").addEventListener("click", disconnect);
+    el("btnSub").addEventListener("click", subscribe);
+    el("btnUnsub").addEventListener("click", unsubscribe);
+    el("btnPublish").addEventListener("click", publishTest);
+    el("btnClear").addEventListener("click", () => (logEl.textContent = ""));
+
+    // Estado inicial
+    setStatus(false);
+    log("Listo. Pon tu ws://IP:PUERTO y conecta.");
+  </script>
+</body>
+</html>

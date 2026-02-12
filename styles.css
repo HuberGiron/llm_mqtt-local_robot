@@ -1,0 +1,643 @@
+/* Centrado de títulos y subtítulos */
+h1, h2 {
+  text-align: center;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Limitar el ancho de las cajas de contenido */
+.info-boxes {
+  margin: 0 auto;
+  width: 90%;
+  max-width: 800px;
+}
+@media (min-width: 768px) {
+  .info-boxes {
+    width: 80%;
+  }
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.variable-inputs {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.constant-inputs {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+label {
+  font-size: 0.9rem;
+  color: #666;
+  display: block;
+  margin-top: 5px;
+}
+
+.constant-label {
+  color: black;
+}
+
+input {
+  width: 90%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.button-controls {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.control-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  background-color: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.control-button:hover {
+  background-color: #a30000;
+  transform: scale(1.02);
+}
+
+#cycleCounter {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 10px 0;
+  color: #cc0000;
+  font-weight: bold;
+}
+
+/* Canvas más ancho (≈ 80–95% del viewport) */
+/* Canvas responsive (no usar vw dentro del grid) */
+.canvas-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+body { overflow-x: hidden; }
+
+
+@media (max-width: 800px) {
+  .canvas-container { width: 92vw; }
+}
+
+
+
+#robotCanvas{
+  border: 1px solid #000;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+}
+
+.chart-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Para pantallas de escritorio, duplicamos el ancho de las gráficas */
+@media (min-width: 768px) {
+  .chart-container {
+    max-width: 800px;
+  }
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.chart-section {
+  margin: 20px auto;
+  max-width: 800px;
+  text-align: center;
+}
+
+.download-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.download-buttons button {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #cc0000;
+  color: white;
+}
+
+/* Información en tiempo real del robot */
+#robotInfo {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Cajas de contenido desplegables para la introducción, diagrama y fórmulas */
+.info-boxes details {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.info-boxes summary {
+  cursor: pointer;
+  padding: 5px;
+  background-color: #cc0000;  /* Fondo rojo */
+  color: #fff;                /* Texto blanco */
+}
+
+.info-boxes p,
+.info-boxes ul {
+  margin: 10px 0;
+}
+
+/* Estilos para la sección del diagrama */
+.diagram-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .diagram-container {
+    flex-direction: row;
+    align-items: center;
+  }
+  .diagram-text {
+    flex: 1;
+  }
+  .diagram-image {
+    flex: 1;
+    max-width: 50%;
+    background-color: #fff; /* Fondo blanco para la imagen */
+    text-align: center;
+    margin: 0 auto;
+  }
+}
+.diagram-box img,
+.diagram-image img {
+  max-width: 70%;
+  height: auto;
+  display: inline-block;
+}
+
+/* Clase para ecuaciones con MathJax, tamaño intermedio */
+.math-equation {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin: 1em 0;
+  text-align: center;
+}
+
+/* Ajustes responsivos para los controles */
+@media (max-width: 600px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+  .button-controls {
+    grid-template-columns: 1fr;
+  }
+.control-button {
+    width: 100%;
+  }
+  .chart-container {
+    max-width: 100%;
+  }
+}
+
+
+/* Fuente de objetivo (Manual/MQTT) */
+.target-source {
+  margin-top: 10px;
+}
+.radio-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  align-items: center;
+}
+.radio-row label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 0;
+}
+
+/* Panel MQTT */
+.mqtt-panel {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #ccc;
+}
+.mqtt-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.small-button {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.small-button:hover {
+  filter: brightness(0.92);
+}
+.mqtt-status {
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+.mqtt-status.offline {
+  background: #eee;
+  color: #333;
+}
+.mqtt-status.connecting {
+  background: #ffe9b3;
+  color: #5a3c00;
+}
+.mqtt-status.online {
+  background: #d6f5d6;
+  color: #114d11;
+}
+.mqtt-hint {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+}
+.mqtt-hint code {
+  background: #fff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* =========================
+   UI polish: Target source + MQTT + layout
+   (pegar al final de styles.css)
+   ========================= */
+
+/* Mejor box model para que inputs/botones cuadren */
+* { box-sizing: border-box; }
+
+/* Inputs al 100% (antes estaban a 90%) */
+input { width: 100%; }
+
+/* Alinear anchos de las secciones principales */
+.info-boxes, .controls, .chart-section, #robotInfo {
+  width: 90%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 768px) {
+  .info-boxes, .controls, .chart-section, #robotInfo { width: 80%; }
+}
+
+/* Tu HTML trae un <br> después del target-source; lo quitamos visualmente */
+.info-boxes > br { display: none; }
+
+/* ===== Target source (Manual/MQTT) como "card" siempre visible ===== */
+.target-source {
+  margin: 0 0 12px 0;
+  padding: 12px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.target-source .constant-label {
+  margin: 0;
+  font-weight: 700;
+  color: #111;
+}
+
+.radio-row {
+  margin-top: 0;               /* evita el salto vertical extra */
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.radio-row input[type="radio"] {
+  accent-color: #cc0000;       /* color institucional para radios */
+}
+
+.radio-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #e3e3e3;
+  border-radius: 999px;
+  background: #fafafa;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .target-source {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .radio-row { width: 100%; }
+}
+
+/* ===== <details> de "Controles de simulación" más limpio ===== */
+.info-boxes details {
+  border-radius: 10px;
+  overflow: hidden;
+}
+.info-boxes summary {
+  padding: 10px 12px;
+  font-weight: 700;
+}
+.info-boxes details[open] summary {
+  border-bottom: 1px solid rgba(255,255,255,0.25);
+}
+
+/* Dentro del details: evita márgenes innecesarios */
+.diagram-container .controls { margin-bottom: 0; }
+
+/* Tarjetas de inputs con borde suave */
+.variable-inputs, .constant-inputs {
+  border: 1px solid #eee;
+}
+.constant-inputs { background-color: #fbfbfb; }
+
+/* ===== Panel MQTT como card ===== */
+.mqtt-panel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.mqtt-row {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.small-button:active,
+.control-button:active {
+  transform: translateY(1px);
+}
+
+/* ===== Panel de info del robot ===== */
+#robotInfo {
+  text-align: center;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+/* ===== Botones de control (3 columnas) con “look” consistente ===== */
+.button-controls { margin-top: 12px; }
+.control-button { border-radius: 10px; }
+
+/* Responsive: una columna de botones en móvil */
+@media (max-width: 600px) {
+  .button-controls { grid-template-columns: 1fr; }
+}
+
+/* ===== MQTT Topbar ===== */
+.mqtt-topbar{
+  display:flex;
+  gap:12px;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+}
+.mqtt-top-left{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.mqtt-top-right{
+  min-width:260px;
+  flex:1;
+}
+
+/* ===== Quick actions ===== */
+.quick-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+.quick-button{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  background:#fafafa;
+  cursor:pointer;
+  font-weight:700;
+}
+.quick-button:hover{ filter:brightness(0.97); }
+.quick-button.llm{
+  border-color:#cc0000;
+  background:#fff5f5;
+}
+
+/* ===== LLM Hero ===== */
+.llm-hero{
+  margin-top:14px;
+  border:2px solid #cc0000;
+  border-radius:14px;
+  padding:14px;
+  background:linear-gradient(180deg, #fff5f5, #ffffff);
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+.llm-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:10px;
+}
+.llm-title{
+  font-size:1.2rem;
+  font-weight:800;
+  color:#111;
+}
+#llmPrompt{
+  width:100%;
+  max-width:100%;
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:12px;
+  font-size:1.05rem;
+  resize:vertical;
+  outline:none;
+}
+#llmPrompt:focus{
+  border-color:#cc0000;
+  box-shadow:0 0 0 3px rgba(204,0,0,0.15);
+}
+.llm-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+.llm-send{
+  padding:12px 16px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:800;
+  background:#cc0000;
+  color:#fff;
+}
+.llm-send:disabled{
+  opacity:0.7;
+  cursor:not-allowed;
+}
+.llm-hint{
+  font-size:0.9rem;
+  color:#555;
+}
+
+/* ===== Loader en estado ===== */
+.mqtt-status.loading{
+  background:#e9edff;
+  color:#1b2a6b;
+  position:relative;
+  padding-left:34px;
+}
+.mqtt-status.loading::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:50%;
+  width:14px;
+  height:14px;
+  margin-top:-7px;
+  border-radius:50%;
+  border:2px solid rgba(27,42,107,0.25);
+  border-top-color:rgba(27,42,107,0.95);
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ===== Help chips ===== */
+.llm-help{
+  margin-top:12px;
+}
+.help-chips{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.chip{
+  border:1px solid #ddd;
+  background:#fff;
+  padding:8px 10px;
+  border-radius:999px;
+  cursor:pointer;
+  font-weight:700;
+}
+.chip:hover{ filter:brightness(0.97); }
+
+/* ===== Layout principal (desktop: 2 columnas, móvil: 1 columna) ===== */
+.app-layout{
+  display:grid;
+  grid-template-columns: minmax(420px, 640px) 1fr;
+  gap:18px;
+  align-items:start;
+}
+
+.left-panel{ min-width:0; }
+.right-panel{ min-width:0; }
+
+/* Evita que el canvas se “salga” */
+.right-panel .canvas-container{
+  margin-top:0;
+}
+
+.right-panel canvas{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+/* Móvil: canvas abajo */
+@media (max-width: 980px){
+  .app-layout{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 981px){
+  .right-panel{
+    position: sticky;
+    top: 12px;
+  }
+}
+
+.json-preview{
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  padding: 10px;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 10px;
+  background: #fff;
+  max-height: 220px;
+  overflow: auto;
+}
+
