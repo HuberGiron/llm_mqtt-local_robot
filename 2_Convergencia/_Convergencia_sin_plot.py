@@ -133,7 +133,6 @@ l=25 #distancia del centro del robot al centro de las llantas
 r=58 #radio llanta (pixeles)
 L=120 #distancia entre centros de llantas (pixeles)
 
-
 #INICIALIZACION DE VARIABLES DE CONTROL
 x=0
 y=0
