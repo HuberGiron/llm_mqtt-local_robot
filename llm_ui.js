@@ -28,6 +28,32 @@
     st.textContent = text;
   }
 
+    // --- UI: prompt gris tras enviar y se limpia al primer input nuevo ---
+  function markPromptAsSent() {
+    if (!promptEl) return;
+    promptEl.classList.add("llm-sent");
+    promptEl.dataset.sent = "1";
+  }
+
+  function clearSentState() {
+    if (!promptEl) return;
+    promptEl.classList.remove("llm-sent");
+    delete promptEl.dataset.sent;
+  }
+
+  // Si el prompt está en modo "sent", al primer intento de escribir/pegar/borrar
+  // lo limpiamos y quitamos el gris ANTES de que entre el primer caracter.
+  promptEl?.addEventListener(
+    "beforeinput",
+    () => {
+      if (promptEl.dataset.sent === "1") {
+        promptEl.value = "";
+        clearSentState();
+      }
+    },
+    true
+  );
+
   function getPoseFallback() {
     // 1) robot global
     if (window.robot && typeof window.robot.x === "number" && typeof window.robot.y === "number") {
@@ -61,15 +87,16 @@
     setStatus("online", `MQTT: publicado ${msg}`);
   }
 
-  async function sendToLLM(text) {
+    async function sendToLLM(text) {
     const t = (text || "").trim();
     if (!t) return;
 
-    // clear inmediato pero con backup (si falla, restauramos)
-    const backup = promptEl.value;
-    promptEl.value = "";
+    // Si viene de botones rápidos (circle/stop/etc), reflejamos lo enviado en el textbox
+    if (promptEl && promptEl.value.trim() !== t) promptEl.value = t;
 
     btn.disabled = true;
+    promptEl.readOnly = true;     // evita que editen mientras se envía
+    markPromptAsSent();           // lo dejamos en gris “post-envío”
     setStatus("loading", "LLM: enviando...");
 
     try {
@@ -83,15 +110,18 @@
       if (!res.ok || !data.ok) throw new Error(data.detail || "Error");
 
       setStatus("online", `LLM: OK · intent=${data.cmd?.intent || "?"}`);
+      // Importante: NO lo borramos aquí. Se borrará al primer input del usuario.
     } catch (e) {
-      // restaura texto si hubo error
-      promptEl.value = backup;
+      // Si falló, quitamos el modo gris para que el usuario vea que no se envió bien
+      clearSentState();
       setStatus("offline", `LLM: ERROR (${e.message})`);
     } finally {
       btn.disabled = false;
+      promptEl.readOnly = false;
       promptEl.focus();
     }
   }
+
 
   // Enviar desde textbox
   function sendFromBox() {

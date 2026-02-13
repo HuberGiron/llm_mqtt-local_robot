@@ -14,6 +14,7 @@ MQTT_TLS = os.getenv("MQTT_TLS", "0")                     # 0 en LAN
 MQTT_WS_PATH = os.getenv("MQTT_WS_PATH", "/mqtt")         # no afecta en tcp
 MQTT_KEEPALIVE = os.getenv("MQTT_KEEPALIVE", "60")
 
+
 def _can_connect(host: str, port: int, timeout: float = 0.25) -> bool:
     try:
         with socket.create_connection((host, port), timeout=timeout):

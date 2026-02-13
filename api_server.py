@@ -11,19 +11,22 @@ from llm_plan_mqtt import (
     ollama_generate,
     fallback_cmd,
     _clamp_cmd_inplace,
+    _enforce_numbers_from_text,   # <-- agrega esto
     MqttPub,
     OLLAMA_URL_DEFAULT,
 )
 
-MQTT_HOST   = os.getenv("MQTT_HOST", "test.mosquitto.org")
+MQTT_HOST   = os.getenv("MQTT_HOST", "127.0.0.1")
 MQTT_PORT   = int(os.getenv("MQTT_PORT", "1883"))
 CMD_TOPIC   = os.getenv("CMD_TOPIC", "huber/robot/plan/cmd")
 
 OLLAMA_URL  = os.getenv("OLLAMA_URL", OLLAMA_URL_DEFAULT)
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral-nemo:12b-instruct-2407-q4_0")
+#OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral-nemo:12b-instruct-2407-q4_0")
+#OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "deepseek-r1:7b-qwen-distill-q4_K_M")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "deepseek-r1:8b-0528-qwen3-q4_K_M")
 
 # Warmup (default: 5) - NO publica
-WARMUP_N = int(os.getenv("WARMUP", "5"))
+WARMUP_N = int(os.getenv("WARMUP", "15"))
 WARMUP_ENABLED = os.getenv("WARMUP_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"}
 
 # Seguridad mínima opcional (LAN demo: déjalo vacío)
@@ -63,6 +66,7 @@ async def lifespan(app: FastAPI):
                 cmd = fallback_cmd(txt)
 
             # clamp (para calentar también esa ruta)
+            cmd = _enforce_numbers_from_text(cmd, txt)  # <-- agrega esto
             cmd = _clamp_cmd_inplace(cmd)
 
             # NO publica: solo log corto
@@ -113,6 +117,7 @@ def plan(payload: dict):
     if not cmd:
         cmd = fallback_cmd(text)
 
+    cmd = _enforce_numbers_from_text(cmd, text)  # <-- agrega esto
     cmd = _clamp_cmd_inplace(cmd)
 
     msg = {"cmd": cmd, "t_ms": int(time.time() * 1000)}

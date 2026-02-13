@@ -45,13 +45,7 @@ TRAJ_TYPES = [
     "figure8",
     "sine",
     "square",
-    "racetrack",
-    "clothoid",
     "spiral",
-    "spline",
-    "astar",
-    "rrtstar",
-    "mpc",
 ]
 
 JSON_SCHEMA = {
@@ -64,52 +58,169 @@ JSON_SCHEMA = {
         "dy": {"type": "number"},
         "traj": {
             "type": "object",
-            "properties": {
-                "type": {"type": "string", "enum": TRAJ_TYPES},
-                "dt": {"type": "number"},
-                "period": {"type": "number"},
-                "duration": {"type": "number"},
-                "loops": {"type": "integer"},
-                "center": {
+            "description": "Trajectory parameters. NOTE: 'waypoints' is ONLY allowed for type='square'.",
+            "oneOf": [
+                # -------------------------
+                # LINE
+                # -------------------------
+                {
                     "type": "object",
-                    "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
-                    "required": ["x", "y"],
-                    "additionalProperties": False,
-                },
-                "start": {
-                    "type": "object",
-                    "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
-                    "required": ["x", "y"],
-                    "additionalProperties": False,
-                },
-                "end": {
-                    "type": "object",
-                    "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
-                    "required": ["x", "y"],
-                    "additionalProperties": False,
-                },
-                "a": {"type": "number"},
-                "b": {"type": "number"},
-                "radius": {"type": "number"},
-                "amp": {"type": "number"},
-                "freq": {"type": "number"},
-                "length": {"type": "number"},
-                "speed": {"type": "number"},
-                "waypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
-                        "required": ["x", "y"],
-                        "additionalProperties": False,
+                    "properties": {
+                        "type": {"type": "string", "const": "line"},
+                        "end": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                            "required": ["x", "y"],
+                            "additionalProperties": False,
+                        },
+                        "speed": {"type": "number"},
+                        "duration": {"type": "number"},
                     },
-                    "minItems": 2,
-                    "maxItems": 50,
+                    "required": ["type", "end"],
+                    "additionalProperties": False,
                 },
-            },
-            "required": ["type"],
-            "additionalProperties": False,
+
+                # -------------------------
+                # CIRCLE (NO waypoints)
+                # -------------------------
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "const": "circle"},
+                        "center": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                            "required": ["x", "y"],
+                            "additionalProperties": False,
+                        },
+                        "radius": {"type": "number"},
+                        # allow either; planner may use period, you may later derive period from speed
+                        "speed": {"type": "number"},
+                        "period": {"type": "number"},
+                        "loops": {"type": "integer"},
+                    },
+                    "required": ["type", "center", "radius"],
+                    "additionalProperties": False,
+                },
+
+                # -------------------------
+                # ELLIPSE (NO waypoints)
+                # -------------------------
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "const": "ellipse"},
+                        "center": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                            "required": ["x", "y"],
+                            "additionalProperties": False,
+                        },
+                        "a": {"type": "number"},
+                        "b": {"type": "number"},
+                        "speed": {"type": "number"},
+                        "period": {"type": "number"},
+                        "loops": {"type": "integer"},
+                    },
+                    "required": ["type", "center", "a", "b"],
+                    "additionalProperties": False,
+                },
+
+                # -------------------------
+                # FIGURE8 (NO waypoints)
+                # -------------------------
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "const": "figure8"},
+                        "center": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                            "required": ["x", "y"],
+                            "additionalProperties": False,
+                        },
+                        "a": {"type": "number"},
+                        "b": {"type": "number"},
+                        "speed": {"type": "number"},
+                        "period": {"type": "number"},
+                        "loops": {"type": "integer"},
+                    },
+                    "required": ["type", "center", "a", "b"],
+                    "additionalProperties": False,
+                },
+
+                # -------------------------
+                # SINE (NO waypoints)
+                # -------------------------
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "const": "sine"},
+                        # center is optional in your planner (it can use start_xy)
+                        "center": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                            "required": ["x", "y"],
+                            "additionalProperties": False,
+                        },
+                        "amp": {"type": "number"},
+                        "freq": {"type": "number"},
+                        "speed": {"type": "number"},
+                        "duration": {"type": "number"},
+                    },
+                    "required": ["type", "amp", "freq", "duration"],
+                    "additionalProperties": False,
+                },
+
+                # -------------------------
+                # SQUARE (waypoints allowed)
+                # -------------------------
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "const": "square"},
+                        "waypoints": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                                "required": ["x", "y"],
+                                "additionalProperties": False,
+                            },
+                            "minItems": 4,
+                            "maxItems": 50,
+                        },
+                        "speed": {"type": "number"},
+                        "loops": {"type": "integer"},
+                    },
+                    "required": ["type", "waypoints"],
+                    "additionalProperties": False,
+                },
+
+                # -------------------------
+                # SPIRAL (NO waypoints)
+                # -------------------------
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "const": "spiral"},
+                        "center": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+                            "required": ["x", "y"],
+                            "additionalProperties": False,
+                        },
+                        "r0": {"type": "number"},
+                        "k": {"type": "number"},
+                        "period": {"type": "number"},
+                        "duration": {"type": "number"},
+                    },
+                    "required": ["type", "center"],
+                    "additionalProperties": False,
+                },
+            ],
         },
+
     },
     "required": ["intent"],
     "additionalProperties": False,
@@ -122,29 +233,27 @@ No incluyas texto extra, ni markdown, ni explicaciones.
 
 Convenciones:
 - Ejes: +x = derecha, -x = izquierda, +y = arriba/adelante, -y = abajo/atrás.
-- Workspace:
-  x ∈ [{X_MIN}, {X_MAX}]
-  y ∈ [{Y_MIN}, {Y_MAX}]
-- El planificador mantiene un "objetivo actual" (xg, yg). Si el usuario da órdenes relativas, usa intent="delta" con dx,dy.
-- Si el usuario pide ir a un punto (centro, esquina, "x=...,y=..."), usa intent="goto" con x,y.
-- Si el usuario pide una trayectoria, usa intent="traj" y llena "traj":
-    - traj.type ∈ {TRAJ_TYPES}
-    - Usa parámetros seguros por defecto si faltan:
-        dt = 0.1 s (el planificador puede ignorarlo y usar su dt fijo)
-        period = 30 s (círculo/elipse/figura8)
-        speed = 150 mm/s (línea/waypoints)
-        radius = 200 mm (círculo)
-        a = 350 mm, b = 200 mm (elipse)
-        amp = 120 mm, freq = 0.05 Hz (senoide)
-    - Si no especifican centro, usa center=(0,0) salvo que tenga más sentido usar el objetivo actual.
-    - Para "square" o "spline", si no te dan waypoints, genera una lista de 4 a 8 puntos dentro del workspace.
-    - Para "astar/rrtstar/mpc": produce una trayectoria por waypoints (traj.type='astar' etc.) y coloca al menos end=(x,y) o waypoints.
-- "stop" / "detener" => intent="stop".
-- "pausa" => intent="pause", "continua" => intent="resume".
-- Si es ambiguo, responde intent="noop".
+- Workspace: x ∈ [{X_MIN}, {X_MAX}], y ∈ [{Y_MIN}, {Y_MAX}].
+- El planificador mantiene un objetivo actual (xg, yg).
+  - Órdenes relativas => intent="delta" con dx,dy.
+  - Ir a un punto absoluto => intent="goto" con x,y.
+  - Detener => intent="stop". Pausa => intent="pause". Continuar => intent="resume".
 
-Siempre procura que los valores queden dentro del workspace (si te sales, aproxima al límite).
+Trayectorias (intent="traj"):
+- traj.type ∈ {TRAJ_TYPES}
+
+REGLAS IMPORTANTES:
+1) NO uses "waypoints" para circle/ellipse/figure8/sine/spiral/line.
+   "waypoints" SOLO se usa para "square" (o si el usuario explícitamente te da una lista de puntos).
+2) Para "circle": usa center + radius. Si el usuario menciona velocidad, usa "speed" (mm/s).
+   Si el usuario menciona tiempo ("en 30s"), usa "period" (s). No inventes waypoints.
+3) Para "line": usa end + speed.
+4) Para "square": si no te dan waypoints, genera una lista de 4 a 8 puntos dentro del workspace (puedes cerrar el cuadrado repitiendo el primer punto).
+5) Usa un speed por default de 50, si te piden ir mas rapido usa 100, si te piden ir lento usa 10.
+Si es ambiguo, responde intent="noop".
+Siempre procura mantenerte dentro del workspace (si te sales, aproxima al límite).
 """
+
 
 
 def ollama_generate(model: str, user_text: str, url: str, timeout_s: int = 60) -> Tuple[Optional[dict], str]:
@@ -154,7 +263,12 @@ def ollama_generate(model: str, user_text: str, url: str, timeout_s: int = 60) -
         "prompt": user_text,
         "stream": False,
         "format": JSON_SCHEMA,
-        "options": {"temperature": 0},
+        "options": {
+            "temperature": 0,
+            "num_predict": 220,
+            "num_ctx": 4096
+            },
+        "keep_alive": "30m",
     }
     r = requests.post(url, json=payload, timeout=timeout_s)
     r.raise_for_status()
@@ -206,10 +320,10 @@ def fallback_cmd(text: str) -> dict:
     if "figura" in t and "8" in t:
         return {"intent": "traj", "traj": {"type": "figure8", "center": {"x": 0.0, "y": 0.0}, "a": 300.0, "b": 200.0, "period": 40.0}}
     if "seno" in t or "senoide" in t:
-        return {"intent": "traj", "traj": {"type": "sine", "center": {"x": -300.0, "y": 0.0}, "amp": 120.0, "freq": 0.05, "speed": 120.0, "duration": 30.0}}
+        return {"intent": "traj", "traj": {"type": "sine", "center": {"x": -300.0, "y": 0.0}, "amp": 120.0, "freq": 0.05, "speed": 50.0, "duration": 30.0}}
     if "cuadrad" in t:
         wp = [{"x": -300.0, "y": -200.0}, {"x": 300.0, "y": -200.0}, {"x": 300.0, "y": 200.0}, {"x": -300.0, "y": 200.0}, {"x": -300.0, "y": -200.0}]
-        return {"intent": "traj", "traj": {"type": "square", "waypoints": wp, "speed": 150.0, "loops": 0}}
+        return {"intent": "traj", "traj": {"type": "square", "waypoints": wp, "speed": 50.0, "loops": 0}}
 
     # delta directions
     dist = _extract_number(t) or 100.0
@@ -313,6 +427,91 @@ def _clamp_cmd_inplace(cmd: dict) -> dict:
         cmd["traj"] = traj
     return cmd
 
+_RE_FLOAT = r"(-?\d+(?:\.\d+)?)"
+
+def _parse_center_xy(text: str):
+    t = text.lower()
+    m = re.search(
+        r"centro\s*(?:en|=)?\s*\(?\s*" + _RE_FLOAT +
+        r"\s*(?:,|\s+con\s+|\s+)\s*" + _RE_FLOAT + r"\s*\)?",
+        t,
+    )
+    if not m:
+        return None
+    return float(m.group(1)), float(m.group(2))
+
+def _parse_radius(text: str):
+    t = text.lower()
+    m = re.search(r"(?:radio\s*(?:de)?\s*|r\s*=\s*)" + _RE_FLOAT, t)
+    if not m:
+        return None
+    return abs(float(m.group(1)))
+
+def _parse_time_seconds(text: str):
+    t = text.lower()
+    m = re.search(r"(?:en|durante)\s*" + _RE_FLOAT +
+                  r"\s*(s|seg|segs|segundo|segundos|min|mins|minuto|minutos)\b", t)
+    if not m:
+        return None
+    val = float(m.group(1))
+    unit = m.group(2)
+    if unit.startswith("min"):
+        val *= 60.0
+    return max(0.01, val)
+
+def _parse_loops(text: str):
+    m = re.search(r"(\d+)\s*(?:vuelta|vueltas|giro|giros)\b", text.lower())
+    return int(m.group(1)) if m else None
+
+
+def _max_radius_that_fits(cx: float, cy: float) -> float:
+    return max(0.0, min(X_MAX - cx, cx - X_MIN, Y_MAX - cy, cy - Y_MIN))
+
+def _enforce_numbers_from_text(cmd: dict, user_text: str) -> dict:
+    if cmd.get("intent") != "traj":
+        return cmd
+    traj = cmd.get("traj") or {}
+    if (traj.get("type") or "").strip().lower() != "circle":
+        cmd["traj"] = traj
+        return cmd
+
+    c = _parse_center_xy(user_text)
+    r = _parse_radius(user_text)
+    T = _parse_time_seconds(user_text)
+
+    if c is not None:
+        cx, cy = c
+        traj["center"] = {"x": clamp(cx, X_MIN, X_MAX), "y": clamp(cy, Y_MIN, Y_MAX)}
+
+    if r is not None:
+        if "center" in traj:
+            cx = float(traj["center"]["x"])
+            cy = float(traj["center"]["y"])
+            rmax = _max_radius_that_fits(cx, cy)
+            traj["radius"] = float(min(r, rmax)) if rmax > 0 else float(r)
+        else:
+            traj["radius"] = float(r)
+
+    loops = _parse_loops(user_text)
+
+    if T is not None:
+        if loops and loops > 0:
+            traj["loops"] = int(loops)
+            traj["period"] = float(T / loops)
+        else:
+            traj["period"] = float(T)
+
+
+    if "radius" in traj and "period" in traj:
+        R = float(traj["radius"])
+        P = float(traj["period"])
+        if P > 0:
+            traj["speed"] = float(2.0 * 3.141592653589793 * R / P)
+
+    cmd["traj"] = traj
+    return cmd
+
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -323,9 +522,11 @@ def main():
     ap.add_argument("--retain", action="store_true", help="Retener el último comando (útil si el planificador se reconecta)")
     ap.add_argument("--client_id", default=f"llm_plan_{int(time.time())}")
 
-    ap.add_argument("--model", default="mistral-nemo:12b-instruct-2407-q4_0")
+    #ap.add_argument("--model", default="mistral-nemo:12b-instruct-2407-q4_0")
+    #ap.add_argument("--model", default="deepseek-r1:7b-qwen-distill-q4_K_M")
+    ap.add_argument("--model", default="deepseek-r1:8b-0528-qwen3-q4_K_M")
     ap.add_argument("--ollama_url", default=OLLAMA_URL_DEFAULT)
-    ap.add_argument("--warmup", type=int, default=5)
+    ap.add_argument("--warmup", type=int, default=10)
 
     ap.add_argument("--once", default=None, help="Envía 1 comando y sale (ej: --once 'circulo 30s')")
 
@@ -356,6 +557,7 @@ def main():
         else:
             why = "LLM"
         cmd = _clamp_cmd_inplace(cmd)
+        cmd = _enforce_numbers_from_text(cmd, txt)
         would_send = json.dumps({"cmd": cmd, "t_ms": int(time.time()*1000)}, ensure_ascii=False)
         print(f"  [{i+1}/{args.warmup}] '{txt}' -> {why} -> would_send: {would_send}")
 
@@ -373,6 +575,8 @@ def main():
             why = "LLM"
 
         cmd = _clamp_cmd_inplace(cmd)
+        cmd = _enforce_numbers_from_text(cmd, text)
+
         msg = {
             "cmd": cmd,
             "t_ms": int(time.time()*1000),

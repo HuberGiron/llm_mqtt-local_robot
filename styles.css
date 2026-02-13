@@ -641,3 +641,7 @@ input { width: 100%; }
   overflow: auto;
 }
 
+/* Prompt “enviado”: se ve gris hasta que el usuario empiece a escribir algo nuevo */
+#llmPrompt.llm-sent {
+  color: #8a8a8a;
+}
