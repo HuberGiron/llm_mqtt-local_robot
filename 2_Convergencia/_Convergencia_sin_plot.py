@@ -121,6 +121,10 @@ print("Robot 1 OK")
 # robot3=Bt.connect("98:D3:21:F7:B4:86")
 # print("Robot 3 OK")
 
+# print("Conectando Robot 4.....")
+# robot4=Bt.connect("00:21:06:08:16:21")
+# print("Robot 4 OK")
+
 robot_bt=robot1
 robot_id=1 #ID del QR a detectar
 robot=[[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]
