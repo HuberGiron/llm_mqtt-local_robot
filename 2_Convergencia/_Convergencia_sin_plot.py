@@ -105,13 +105,13 @@ def flip_points(points, w: int, h: int, flip_code: int):
     return out
 
 #------INICIALIZACION ROBOT------
-# print("Conectando Robot 0.....")
-# robot0=Bt.connect("98:D3:21:F7:B5:70")
-# print("Robot 0 OK")
+print("Conectando Robot 0.....")
+robot0=Bt.connect("98:D3:21:F7:B5:70")
+print("Robot 0 OK")
 
-print("Conectando Robot 1.....")
-robot1=Bt.connect("98:D3:31:FA:17:5B")
-print("Robot 1 OK")
+# print("Conectando Robot 1.....")
+# robot1=Bt.connect("98:D3:31:FA:17:5B")
+# print("Robot 1 OK")
 
 # print("Conectando Robot 2.....")
 # robot2=Bt.connect("98:D3:71:F6:63:9C")
@@ -125,8 +125,8 @@ print("Robot 1 OK")
 # robot4=Bt.connect("00:21:06:08:16:21")
 # print("Robot 4 OK")
 
-robot_bt=robot1
-robot_id=1 #ID del QR a detectar
+robot_bt=robot0
+robot_id=0 #ID del QR a detectar
 robot=[[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]
 
 #INICIALIZACION DE VALORES ROBOT FISICO 1
